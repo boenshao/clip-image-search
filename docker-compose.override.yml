@@ -17,7 +17,7 @@ services:
       - "app/main.py"
     develop:
       watch:
-        - path: ./src
+        - path: .
           action: sync
           target: /app
         - path: ./pyproject.toml

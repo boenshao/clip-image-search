@@ -29,11 +29,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PYTHONPATH=/app
 
-COPY ./src/scripts /app/scripts
+COPY ./scripts /app/scripts
 
 COPY ./pyproject.toml ./uv.lock /app/
 
-COPY ./src/app /app/app
+COPY ./app /app/app
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
