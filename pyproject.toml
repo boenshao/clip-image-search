@@ -10,6 +10,11 @@ dependencies = [
     "pillow>=11.0.0",
     "transformers>=4.47.1",
     "torch<2.3.0",
+    "sqlmodel>=0.0.22",
+    "alembic>=1.14.0",
+    "pgvector>=0.3.6",
+    "asyncpg>=0.30.0",
+    "pydantic-settings>=2.7.0",
 ]
 
 [dependency-groups]
@@ -22,7 +27,7 @@ dev = [
 
 [tool.ruff]
 src = ["."]
-extend-exclude = ["./manage.py", "*/migrations"]
+extend-exclude = ["*/migrations"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -58,6 +63,7 @@ relative-imports-order = "closest-to-furthest"
 venvPath = "."
 venv = ".venv"
 include = ["."]
+exclude = ["*/migrations"]
 pythonVersion = "3.12"
 pythonPlatform = "Linux"
 typeCheckingMode = "basic"
