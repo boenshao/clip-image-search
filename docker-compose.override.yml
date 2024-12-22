@@ -1,0 +1,24 @@
+services:
+  db:
+    restart: "no"
+    ports:
+      - "5432:5432"
+
+  api:
+    restart: "no"
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "app/main.py"
+    develop:
+      watch:
+        - path: ./src
+          action: sync
+          target: /app
+        - path: ./pyproject.toml
+          action: rebuild

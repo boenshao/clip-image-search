@@ -4,6 +4,56 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "fastapi[standard]>=0.115.6",
+dependencies = ["fastapi[standard]>=0.115.6"]
+
+[dependency-groups]
+dev = ["pre-commit>=4.0.1", "pyright>=1.1.391", "ruff>=0.8.4"]
+
+[tool.ruff]
+src = ["."]
+extend-exclude = ["./manage.py", "*/migrations"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",      # pydocstyle
+    "PLR",    # pylint-refactor
+    "ISC001", # conflict with format
+    "COM812", # conflict with format
+    "ANN401", # allow dynamically typed expressions (typing.Any)
+    "S101",   # allow usage of assert
+    "S311",   # allow usage of random
+    "PGH003", # allow type: ignore
+    "TRY003", # allow long messages outside the exception class
+    "ISC001", # conflict with formatter
+    "C901",   # too pedenatic
 ]
+unfixable = [
+    "PIE794", # don't touch redefinition
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 110
+max-doc-length = 110
+
+[tool.ruff.lint.isort]
+relative-imports-order = "closest-to-furthest"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+include = ["."]
+pythonVersion = "3.12"
+pythonPlatform = "Linux"
+typeCheckingMode = "basic"
+useLibraryCodeForTypes = false
+reportIncompatibleMethodOverride = "warning"
+reportIncompatibleVariableOverride = "warning"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryComparison = "warning"
+reportUnnecessaryContains = "warning"
+reportAssertAlwaysTrue = "warning"
