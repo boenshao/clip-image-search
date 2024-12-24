@@ -1,5 +1,5 @@
-import json
 import pathlib
+import pickle
 
 import torch
 from PIL import Image
@@ -7,7 +7,7 @@ from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
 
 def main() -> None:
-    # Load pre-trained CLIP model and processor
+    # Load pre-trained CLIP model and processor, only the image part is needed
     model = CLIPVisionModelWithProjection.from_pretrained(
         "openai/clip-vit-base-patch32"
     )
@@ -15,8 +15,6 @@ def main() -> None:
 
     paths = list(pathlib.Path("temp/val2014/").glob("*.jpg"))
     images = [Image.open(p) for p in paths]
-
-    # Preprocess inputs
     inputs = processor(images=images, return_tensors="pt")
 
     # Generate embeddings
@@ -29,9 +27,17 @@ def main() -> None:
     )
     image_embeddings = image_embeddings.detach().numpy()
 
-    with pathlib.Path("temp/embeddings.json").open("w") as f:
-        json.dump(
-            {path.name: image_embeddings[i].tolist() for i, path in enumerate(paths)},
+    # ! In the real world
+    # ! pickle is not a good format for serlizaing any kind of data
+    # ! there's lots of better alternatives in terms of speed and security
+    # ! like msgpack, avro, parquet, etc...
+    # ! but I don't want to introduce dependency just for the sake of this offline task.
+    # ! I can use JSON, but that will make my git repo bloat
+    # ! (I'm a bit mysophobia, I don't like bug file in my repo... XD)
+    # ! I'll just use pickle for now, for demo purposes
+    with pathlib.Path("data/embeddings.pickle").open("wb") as f:
+        pickle.dump(
+            [(path.name, image_embeddings[i].tolist()) for i, path in enumerate(paths)],
             f,
         )
 

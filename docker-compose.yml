@@ -19,7 +19,7 @@ services:
       timeout: 10s
 
   api:
-    image: "${DOCKER_IMAGE_API?Variable not set}:${TAG-latest}"
+    image: "${API_IMAGE_NAME?Variable not set}:${TAG-latest}"
     build:
       context: .
     restart: always
@@ -47,6 +47,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  prestart:
+    image: "${API_IMAGE_NAME?Variable not set}:${TAG-latest}"
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
 
 volumes:
   db-data:

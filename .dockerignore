@@ -6,15 +6,15 @@
 **/.pre-commit-config.yaml
 **/.python-version
 **/Dockerfile
-**/docker-compose.*
-**/dump.json
+**/docker-compose.yml
+**/docker-compose.override.yml
 **/Makefile
 **/README.md
 **/.env
 
 
 # ========== From .gitignore ==========
-temp
+data/val2014
 
 # python generated files
 **/__pycache__/
@@ -26,10 +26,6 @@ temp
 
 # venv
 **/.venv
-
-# django
-**/.env
-**/db.sqlite3
 
 # Compiled source #
 ###################

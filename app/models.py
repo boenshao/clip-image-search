@@ -37,5 +37,5 @@ class QueryLog(SQLModel, table=True):
     image_id: int | None = Field(default=None, foreign_key="image.id")
     clip_embedding_id: int | None = Field(default=None, foreign_key="clipembedding.id")
 
-    image: Image | None = Relationship(back_populates="clip_embedding")
-    clip_embedding: CLIPEmbedding | None = Relationship(back_populates="clip_embedding")
+    image: Image | None = Relationship(back_populates="query_logs")
+    clip_embedding: CLIPEmbedding | None = Relationship(back_populates="query_logs")

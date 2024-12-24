@@ -22,3 +22,16 @@ services:
           target: /app
         - path: ./pyproject.toml
           action: rebuild
+
+
+  prestart:
+    restart: "no"
+    build:
+      context: .
+    develop:
+      watch:
+        - path: .
+          action: sync
+          target: /app
+        - path: ./pyproject.toml
+          action: rebuild
