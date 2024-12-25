@@ -17,15 +17,14 @@ def main() -> None:
     images = [Image.open(p) for p in paths]
     inputs = processor(images=images, return_tensors="pt")
 
-    # Generate embeddings
     with torch.no_grad():
         outputs = model(**inputs)
 
-    # Extract and normalize image and text embeddings
-    image_embeddings = outputs.image_embeds / outputs.image_embeds.norm(
+    # normalize, so later we can do dot product for consine similarity
+    image_embeds = outputs.image_embeds / outputs.image_embeds.norm(
         p=2, dim=-1, keepdim=True
     )
-    image_embeddings = image_embeddings.detach().numpy()
+    image_embeds = image_embeds.detach().numpy()
 
     # ! In the real world
     # ! pickle is not a good format for serlizaing any kind of data
@@ -37,7 +36,7 @@ def main() -> None:
     # ! I'll just use pickle for now, for demo purposes
     with pathlib.Path("data/embeddings.pickle").open("wb") as f:
         pickle.dump(
-            [(path.name, image_embeddings[i].tolist()) for i, path in enumerate(paths)],
+            [(path.name, image_embeds[i].tolist()) for i, path in enumerate(paths)],
             f,
         )
 

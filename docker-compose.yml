@@ -23,6 +23,8 @@ services:
     build:
       context: .
     restart: always
+    volumes:
+      - model-cache-data:/root/.cache/huggingface
     depends_on:
       db:
         condition: service_healthy
@@ -69,3 +71,4 @@ services:
 
 volumes:
   db-data:
+  model-cache-data:
