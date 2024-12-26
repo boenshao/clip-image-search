@@ -1,14 +1,18 @@
+import logging
 from typing import Annotated
 
 import torch
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from transformers import AutoTokenizer, CLIPTextModelWithProjection
 
 from .deps import get_db
-from .models import CLIPEmbedding
+from .models import CLIPEmbedding, SearchLog
+
+logging.basicConfig()
+logging.getLogger("sqlalchemy.engine").setLevel(logging.DEBUG)
 
 model = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
@@ -22,8 +26,10 @@ async def read_root() -> dict:
     return {"Hello": "World"}
 
 
-@app.post("/query")
-async def read_item(query: str, db: Annotated[AsyncSession, Depends(get_db)]) -> dict:
+@app.get("/search")
+async def search(
+    query: str, db: Annotated[AsyncSession, Depends(get_db)]
+) -> dict:  # TODO: return schema
     inputs = tokenizer([query], padding=True, return_tensors="pt")
 
     with torch.no_grad():
@@ -34,15 +40,48 @@ async def read_item(query: str, db: Annotated[AsyncSession, Depends(get_db)]) ->
     )
     text_embeds = text_embeds.detach().numpy()
 
-    emb = (
+    res = (
         await db.exec(
-            select(CLIPEmbedding)
-            .order_by(
-                CLIPEmbedding.embedding.max_inner_product(text_embeds[0].tolist())
+            select(
+                CLIPEmbedding,
+                CLIPEmbedding.embedding.cosine_distance(text_embeds[0].tolist()).label(
+                    "dist"
+                ),
             )
+            .order_by("dist")
             .options(selectinload(CLIPEmbedding.image))  # type: ignore
             .limit(1)
         )
-    ).one_or_none()
+    ).one()  # FIXME
 
-    return {"image_id": emb.image if emb else None}
+    emb, dist = res  # maybe None, FIXME
+    search_log = SearchLog(
+        query=query,
+        clip_distance=dist,
+        user_rating=None,
+        image_id=emb.image.id,
+        clip_embedding_id=emb.id,
+    )
+
+    db.add(search_log)
+    await db.commit()
+    await db.refresh(search_log)
+
+    return {"image_url": emb.image.url, "search_log_id": search_log.id}
+
+
+@app.patch("/rating/{search_log_id}")
+async def rating(
+    search_log_id: int, score: int, db: Annotated[AsyncSession, Depends(get_db)]
+) -> dict:  # TODO: return schema
+    res = await db.exec(select(SearchLog).where(SearchLog.id == search_log_id))
+
+    search_log = res.one_or_none()
+    if not search_log:
+        raise HTTPException(status_code=404, detail="Search log not found")
+
+    search_log.user_rating = score
+    db.add(search_log)
+    await db.commit()
+
+    return {"result": "success"}

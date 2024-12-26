@@ -13,7 +13,7 @@ class Image(SQLModel, table=True):
         back_populates="image",
         sa_relationship_kwargs={"uselist": False},
     )
-    query_logs: list["QueryLog"] = Relationship(
+    search_logs: list["SearchLog"] = Relationship(
         back_populates="image",
     )
 
@@ -24,18 +24,19 @@ class CLIPEmbedding(SQLModel, table=True):
     image_id: int | None = Field(default=None, foreign_key="image.id")
 
     image: Image | None = Relationship(back_populates="clip_embedding")
-    query_logs: list["QueryLog"] = Relationship(
+    search_logs: list["SearchLog"] = Relationship(
         back_populates="clip_embedding",
     )
 
 
-class QueryLog(SQLModel, table=True):
+class SearchLog(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     query: str
-    query_score: float
+    clip_distance: float
     user_rating: Annotated[int, Field(ge=1, le=5)] | None
+
     image_id: int | None = Field(default=None, foreign_key="image.id")
     clip_embedding_id: int | None = Field(default=None, foreign_key="clipembedding.id")
 
-    image: Image | None = Relationship(back_populates="query_logs")
-    clip_embedding: CLIPEmbedding | None = Relationship(back_populates="query_logs")
+    image: Image | None = Relationship(back_populates="search_logs")
+    clip_embedding: CLIPEmbedding | None = Relationship(back_populates="search_logs")
