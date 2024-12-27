@@ -26,8 +26,10 @@ async def init_db(session: AsyncSession) -> None:
 
         for image_url, image_emb in embeddings:
             image = Image(url=image_url)
-            emb = CLIPEmbedding(embedding=image_emb, image=image)
             session.add(image)
+            await session.flush()
+            await session.refresh(image)
+            emb = CLIPEmbedding(embedding=image_emb, image_id=image.id)  # type: ignore
             session.add(emb)
 
-        await session.commit()
+    await session.commit()

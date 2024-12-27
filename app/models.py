@@ -11,6 +11,7 @@ class Image(SQLModel, table=True):
 
     clip_embedding: Optional["CLIPEmbedding"] = Relationship(
         back_populates="image",
+        cascade_delete=True,
         sa_relationship_kwargs={"uselist": False},
     )
     search_logs: list["SearchLog"] = Relationship(
@@ -21,7 +22,7 @@ class Image(SQLModel, table=True):
 class CLIPEmbedding(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     embedding: Any = Field(sa_column=Column(Vector(512)))
-    image_id: int | None = Field(default=None, foreign_key="image.id")
+    image_id: int = Field(foreign_key="image.id", ondelete="CASCADE")
 
     image: Image | None = Relationship(back_populates="clip_embedding")
     search_logs: list["SearchLog"] = Relationship(

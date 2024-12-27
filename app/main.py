@@ -3,7 +3,7 @@ from typing import Annotated
 
 import torch
 from fastapi import Depends, FastAPI, HTTPException, status
-from pydantic import Field
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -22,15 +22,15 @@ tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
 app = FastAPI()
 
 
-@app.get("/")
-async def read_root() -> dict:
-    return {"Hello": "World"}
+class SearchResult(BaseModel):
+    image_url: str
+    search_log_id: int | None
 
 
 @app.get("/search")
 async def search(
     query: str, db: Annotated[AsyncSession, Depends(get_db)]
-) -> dict:  # TODO: return schema
+) -> SearchResult:
     inputs = tokenizer([query], padding=True, return_tensors="pt")
 
     with torch.no_grad():
@@ -53,9 +53,15 @@ async def search(
             .options(selectinload(CLIPEmbedding.image))  # type: ignore
             .limit(1)
         )
-    ).one()  # FIXME
+    ).one_or_none()
 
-    emb, dist = res  # maybe None, FIXME
+    if not res:
+        raise HTTPException(status_code=404, detail="No image found")
+        # no embedding found, but this should not happen in the real world
+    emb, dist = res
+    if not emb.image:
+        raise HTTPException(status_code=404, detail="No image found")
+
     search_log = SearchLog(
         query=query,
         clip_distance=dist,
@@ -68,7 +74,7 @@ async def search(
     await db.commit()
     await db.refresh(search_log)
 
-    return {"image_url": emb.image.url, "search_log_id": search_log.id}
+    return SearchResult(image_url=emb.image.url, search_log_id=search_log.id)
 
 
 @app.patch("/rating/{search_log_id}", status_code=status.HTTP_204_NO_CONTENT)
