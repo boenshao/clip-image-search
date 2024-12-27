@@ -16,6 +16,8 @@ services:
           target: /app
         - path: ./pyproject.toml
           action: rebuild
+    volumes:
+      - ./static:/app/static
 
   prestart:
     restart: "no"

@@ -1,94 +1,18 @@
-import logging
-from typing import Annotated
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-import torch
-from fastapi import Depends, FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import selectinload
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
-from transformers import AutoTokenizer, CLIPTextModelWithProjection
-
-from .deps import get_db
-from .models import CLIPEmbedding, SearchLog
-
-logging.basicConfig()
-logging.getLogger("sqlalchemy.engine").setLevel(logging.DEBUG)
-
-model = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
-tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
-
+from .api import router as api_router
 
 app = FastAPI()
+app.include_router(api_router, prefix="/api")
 
 
-class SearchResult(BaseModel):
-    image_url: str
-    search_log_id: int | None
+# these should be serve by server like Nginx, but lets not complicating things
+# it's just for demo...
+@app.get("/")
+async def index() -> FileResponse:
+    return FileResponse("static/index.html")
 
 
-@app.get("/search")
-async def search(
-    query: str, db: Annotated[AsyncSession, Depends(get_db)]
-) -> SearchResult:
-    inputs = tokenizer([query], padding=True, return_tensors="pt")
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-
-    text_embeds = outputs.text_embeds / outputs.text_embeds.norm(
-        p=2, dim=-1, keepdim=True
-    )
-    text_embeds = text_embeds.detach().numpy()
-
-    res = (
-        await db.exec(
-            select(
-                CLIPEmbedding,
-                CLIPEmbedding.embedding.cosine_distance(text_embeds[0].tolist()).label(
-                    "dist"
-                ),
-            )
-            .order_by("dist")
-            .options(selectinload(CLIPEmbedding.image))  # type: ignore
-            .limit(1)
-        )
-    ).one_or_none()
-
-    if not res:
-        raise HTTPException(status_code=404, detail="No image found")
-        # no embedding found, but this should not happen in the real world
-    emb, dist = res
-    if not emb.image:
-        raise HTTPException(status_code=404, detail="No image found")
-
-    search_log = SearchLog(
-        query=query,
-        clip_distance=dist,
-        user_rating=None,
-        image_id=emb.image.id,
-        clip_embedding_id=emb.id,
-    )
-
-    db.add(search_log)
-    await db.commit()
-    await db.refresh(search_log)
-
-    return SearchResult(image_url=emb.image.url, search_log_id=search_log.id)
-
-
-@app.patch("/rating/{search_log_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def rating(
-    search_log_id: int,
-    score: Annotated[int, Field(ge=0, le=1)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> None:
-    res = await db.exec(select(SearchLog).where(SearchLog.id == search_log_id))
-
-    search_log = res.one_or_none()
-    if not search_log:
-        raise HTTPException(status_code=404, detail="Search log not found")
-
-    search_log.user_rating = score
-    db.add(search_log)
-    await db.commit()
+app.mount("/images", StaticFiles(directory="static/val2014"), name="images")

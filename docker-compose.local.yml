@@ -8,6 +8,8 @@ services:
     restart: "no"
     ports:
       - "8000:8000"
+    volumes:
+      - ./static:/app/static
 
   prestart:
     restart: "no"

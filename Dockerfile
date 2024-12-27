@@ -32,9 +32,9 @@ ENV PYTHONPATH=/app
 COPY ./data /app/data
 COPY ./scripts /app/scripts
 COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
-COPY ./app /app/app
-# we can use mutli-stage build to exlude the tests folder in prod image
+# we can use mutli-stage build to exclude the tests code and deps in prod image
 COPY ./tests /app/tests
+COPY ./app /app/app
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers

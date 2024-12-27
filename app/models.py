@@ -24,7 +24,7 @@ class CLIPEmbedding(SQLModel, table=True):
     embedding: Any = Field(sa_column=Column(Vector(512)))
     image_id: int = Field(foreign_key="image.id", ondelete="CASCADE")
 
-    image: Image | None = Relationship(back_populates="clip_embedding")
+    image: Image = Relationship(back_populates="clip_embedding")
     search_logs: list["SearchLog"] = Relationship(
         back_populates="clip_embedding",
     )

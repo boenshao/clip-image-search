@@ -25,7 +25,7 @@ async def init_db(session: AsyncSession) -> None:
             embeddings = pickle.loads(f.read())  # noqa: S301, It's okay, I know what I'm doing
 
         for image_url, image_emb in embeddings:
-            image = Image(url=image_url)
+            image = Image(url=f"/images/{image_url}")
             session.add(image)
             await session.flush()
             await session.refresh(image)

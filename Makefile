@@ -25,8 +25,12 @@ lint: format ## Run linting
 
 check: format ## Run pre-commit check
 	uv run pre-commit run --all-files
-.PHONY: lint
+.PHONY: check
 
 run-dev: ## Run dev stack
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml watch
 .PHONY: run-dev
+
+run-local: ## Run local stack
+	docker compose -f docker-compose.yml -f docker-compose.local.yml up --force-recreate
+.PHONY: run-local

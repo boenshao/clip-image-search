@@ -14,7 +14,7 @@
 
 
 # ========== From .gitignore ==========
-data/val2014
+static/val2014
 .ruff_cache
 
 # python generated files

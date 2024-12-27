@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLIP Image Search</title>
+    <script
+      src="https://unpkg.com/htmx.org@2.0.4"
+      integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/htmx-ext-client-side-templates@2.0.0/client-side-templates.js"></script>
+    <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js"></script>
+    <script src="https://unpkg.com/mustache@latest"></script>
+  </head>
+  <body>
+    <h3>CLIP Image Search</h3>
+    <div hx-ext="client-side-templates">
+      <form
+        hx-get="/api/search"
+        hx-swap="innerHTML"
+        hx-target="#result"
+        mustache-template="result-template"
+      >
+        <input name="query" />
+        <button class="btn primary">Go</button>
+      </form>
+      <div id="result"></div>
+      <template id="result-template">
+        <img src="{{image_url}}" />
+        <button
+          class="rating-button"
+          hx-patch="/api/rating/{{search_log_id}}"
+          hx-vals='{"score": 1}'
+          hx-ext="json-enc"
+          hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
+        >
+          Good
+        </button>
+        <button
+          class="rating-button"
+          hx-patch="/api/rating/{{search_log_id}}"
+          hx-vals='{"score": 0}'
+          hx-ext="json-enc"
+          hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
+        >
+          Bad
+        </button>
+      </template>
+    </div>
+  </body>
+</html>

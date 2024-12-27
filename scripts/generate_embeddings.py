@@ -7,7 +7,7 @@ from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
 
 def main() -> None:
-    # Load pre-trained CLIP model and processor, only the image part is needed
+    # load pre-trained CLIP model and processor, only the image part is needed
     model = CLIPVisionModelWithProjection.from_pretrained(
         "openai/clip-vit-base-patch32"
     )
