@@ -6,15 +6,9 @@ services:
 
   api:
     restart: "no"
-    build:
-      context: .
     ports:
       - "8000:8000"
-    command:
-      - fastapi
-      - run
-      - --reload
-      - "app/main.py"
+    command: sleep infinity # for dev, infinite loop to keep container alive doing nothing
     develop:
       watch:
         - path: .
@@ -23,11 +17,8 @@ services:
         - path: ./pyproject.toml
           action: rebuild
 
-
   prestart:
     restart: "no"
-    build:
-      context: .
     develop:
       watch:
         - path: .

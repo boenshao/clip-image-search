@@ -1,0 +1,13 @@
+services:
+  db:
+    restart: "no"
+    ports:
+      - "5432:5432"
+
+  api:
+    restart: "no"
+    ports:
+      - "8000:8000"
+
+  prestart:
+    restart: "no"

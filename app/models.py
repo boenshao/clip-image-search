@@ -33,7 +33,9 @@ class SearchLog(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     query: str
     clip_distance: float
-    user_rating: Annotated[int, Field(ge=1, le=5)] | None
+    # this validation seems not working...https://github.com/fastapi/sqlmodel/issues/52
+    # let's do it in the endpoint
+    user_rating: Annotated[int, Field(ge=0, le=1)] | None
 
     image_id: int | None = Field(default=None, foreign_key="image.id")
     clip_embedding_id: int | None = Field(default=None, foreign_key="clipembedding.id")

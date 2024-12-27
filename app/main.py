@@ -2,7 +2,8 @@ import logging
 from typing import Annotated
 
 import torch
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, status
+from pydantic import Field
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -70,10 +71,12 @@ async def search(
     return {"image_url": emb.image.url, "search_log_id": search_log.id}
 
 
-@app.patch("/rating/{search_log_id}")
+@app.patch("/rating/{search_log_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def rating(
-    search_log_id: int, score: int, db: Annotated[AsyncSession, Depends(get_db)]
-) -> dict:  # TODO: return schema
+    search_log_id: int,
+    score: Annotated[int, Field(ge=0, le=1)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
     res = await db.exec(select(SearchLog).where(SearchLog.id == search_log_id))
 
     search_log = res.one_or_none()
@@ -83,5 +86,3 @@ async def rating(
     search_log.user_rating = score
     db.add(search_log)
     await db.commit()
-
-    return {"result": "success"}

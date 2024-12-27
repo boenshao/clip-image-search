@@ -27,10 +27,6 @@ check: format ## Run pre-commit check
 	uv run pre-commit run --all-files
 .PHONY: lint
 
-test: ## Run unit tests
-	uv run pytest -v -n4
-.PHONY: test
-
-run: ## Run dev server
-	uv run manage.py runserver
-.PHONY: run
+run-dev: ## Run dev stack
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml watch
+.PHONY: run-dev
