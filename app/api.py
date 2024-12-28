@@ -1,23 +1,13 @@
-import logging
 from typing import Annotated
 
-import torch
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from transformers import AutoTokenizer, CLIPTextModelWithProjection
 
-from .deps import get_db
+from .deps import CLIPText, get_clip_text_model, get_db
 from .models import CLIPEmbedding, SearchLog
-
-logging.basicConfig()
-logging.getLogger("sqlalchemy.engine").setLevel(logging.DEBUG)
-
-model = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
-tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
-
 
 router = APIRouter()
 
@@ -29,18 +19,11 @@ class SearchResult(BaseModel):
 
 @router.get("/search")
 async def search(
-    query: str, db: Annotated[AsyncSession, Depends(get_db)]
+    query: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    clip_text_model: Annotated[CLIPText, Depends(get_clip_text_model)],
 ) -> SearchResult:
-    inputs = tokenizer([query], padding=True, return_tensors="pt")
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-
-    text_embeds = outputs.text_embeds / outputs.text_embeds.norm(
-        p=2, dim=-1, keepdim=True
-    )
-    text_embeds = text_embeds.detach().numpy()
-
+    text_embeds = clip_text_model(query)
     res = (
         await db.exec(
             select(

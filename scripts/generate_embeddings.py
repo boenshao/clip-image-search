@@ -13,7 +13,7 @@ def main() -> None:
     )
     processor = CLIPImageProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-    paths = list(pathlib.Path("temp/val2014/").glob("*.jpg"))
+    paths = list(pathlib.Path("static/val2014/").glob("*.jpg"))
     images = [Image.open(p) for p in paths]
     inputs = processor(images=images, return_tensors="pt")
 
