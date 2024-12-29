@@ -28,24 +28,26 @@
       <div id="result"></div>
       <template id="result-template">
         <img src="{{image_url}}" />
-        <button
-          class="rating-button"
-          hx-patch="/api/rating/{{search_log_id}}"
-          hx-vals='{"score": 1}'
-          hx-ext="json-enc"
-          hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
-        >
-          Good
-        </button>
-        <button
-          class="rating-button"
-          hx-patch="/api/rating/{{search_log_id}}"
-          hx-vals='{"score": 0}'
-          hx-ext="json-enc"
-          hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
-        >
-          Bad
-        </button>
+        <div>
+          <button
+            class="rating-button"
+            hx-patch="/api/rating/{{search_log_id}}"
+            hx-vals='{"score": 1}'
+            hx-ext="json-enc"
+            hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
+          >
+            Good
+          </button>
+          <button
+            class="rating-button"
+            hx-patch="/api/rating/{{search_log_id}}"
+            hx-vals='{"score": 0}'
+            hx-ext="json-enc"
+            hx-on:click='document.querySelectorAll(".rating-button").forEach(function(e){e.remove()})'
+          >
+            Bad
+          </button>
+        </div>
       </template>
     </div>
   </body>
